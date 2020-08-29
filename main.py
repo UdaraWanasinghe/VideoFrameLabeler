@@ -1,6 +1,8 @@
 import vlc
 from tkinter import *
 from tkinter import filedialog
+import json
+from tkinter import messagebox
 
 
 class VideoTagger:
@@ -28,7 +30,7 @@ class VideoTagger:
 
     def _init_root_window(self):
         self.root_window = Tk()
-        self.root_window.title('Video Annotator')
+        self.root_window.title('Video Frame Labeler')
         self.root_window.wm_attributes("-topmost", 1)
         self.root_window.geometry("400x400")
 
@@ -44,31 +46,31 @@ class VideoTagger:
     def _bind_keyboard_events(self):
         root = self.root_window
 
-        def play_callback(e):
+        def play_callback(_):
             self._play_button_callback()
 
-        def forward_callback(e):
+        def forward_callback(_):
             self._fast_forward_button_callback()
 
-        def fast_forward_callback(e):
+        def fast_forward_callback(_):
             self._fast_forward_button_callback()
 
-        def backward_callback(e):
+        def backward_callback(_):
             self._backward_button_callback()
 
-        def fast_backward_callback(e):
+        def fast_backward_callback(_):
             self._fast_backward_button_callback()
 
-        def browse_callback(e):
+        def browse_callback(_):
             self._build_load_media_callback()
 
-        def add_callback(e):
+        def add_callback(_):
             self._on_add_callback()
 
-        def delete_callback(e):
+        def delete_callback(_):
             self._on_delete_callback()
 
-        def save_callback(e):
+        def save_callback(_):
             self._on_save_callback()
 
         def print_e(e):
@@ -85,6 +87,7 @@ class VideoTagger:
                     code = key_code - 23
                 if -1 < code < len(self.drop_down_labels):
                     self.drop_down_value.set(self.drop_down_labels[code])
+                    self._on_add_callback()
             print(e)
 
         root.bind("<space>", play_callback)
@@ -137,11 +140,8 @@ class VideoTagger:
         return Button(master, text='Add', command=self._on_add_callback)
 
     def _build_label_list(self, master):
-        self.listbox = Listbox(master, height=10)
-        self.listbox.insert(1, '1')
-        self.listbox.insert(2, '2')
-        self.listbox.insert(3, '3')
-        return self.listbox
+        self.label_listbox = Listbox(master, height=10)
+        return self.label_listbox
 
     @staticmethod
     def _load_option_list():
@@ -162,6 +162,8 @@ class VideoTagger:
             self.media_player.set_media(media)
             self.media_player.play()
             self.annotations = {}
+            self._load_json()
+            self._reload_annotations()
 
     def _play_button_callback(self):
         if self.is_playing:
@@ -183,6 +185,12 @@ class VideoTagger:
     def _fast_backward_button_callback(self):
         self.media_player.set_rate(self.media_player.get_rate() - 1)
 
+    def _reload_annotations(self):
+        self.label_listbox.delete(0, 'end')
+        for k, v in self.annotations.items():
+            self.label_listbox.insert(0, str(k) + ":    " + v)
+        self.label_listbox.select_set(0)
+
     def _on_paused(self, _):
         self.is_playing = False
         self.play_button['text'] = 'Play'
@@ -195,13 +203,31 @@ class VideoTagger:
         self.media_player.set_time(0)
 
     def _on_add_callback(self):
-        print(self)
+        key = self.media_player.get_time()
+        value = self.drop_down_value.get()
+        self.annotations[str(key)] = value
+        self._reload_annotations()
 
     def _on_save_callback(self):
-        print(self)
+        filename = self._get_json_filename()
+        with open(filename, 'w') as f:
+            json.dump(self.annotations, f)
+            messagebox.showinfo(title='Saved', message='Saved to ' + filename)
 
     def _on_delete_callback(self):
-        print(self)
+        selected = self.label_listbox.get(self.label_listbox.curselection()).split(':')[0]
+        del self.annotations[selected]
+        self._reload_annotations()
+
+    def _get_json_filename(self):
+        directory = self.url_input_entry.get().rsplit('/', 1)
+        filename = directory[1].split('.')
+        return directory[0] + '/' + filename[0] + '.json'
+
+    def _load_json(self):
+        filename = self._get_json_filename()
+        with open(filename) as f:
+            self.annotations = json.load(f)
 
 
 videoTagger = VideoTagger()
