@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import vlc
 from tkinter import *
 from tkinter import filedialog
