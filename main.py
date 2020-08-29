@@ -37,6 +37,7 @@ class VideoTagger:
     def _init_media_player(self):
         self.media_player = vlc.MediaPlayer()
         self.is_playing = False
+        self.directory = './'
         events = self.media_player.event_manager()
         events.event_attach(vlc.EventType.MediaPlayerPaused, self._on_paused)
         events.event_attach(vlc.EventType.MediaPlayerPlaying, self._on_playing)
@@ -153,17 +154,19 @@ class VideoTagger:
         return lines
 
     def _build_load_media_callback(self):
-        filename = filedialog.askopenfilename(initialdir="./",
+        filename = filedialog.askopenfilename(initialdir=self.directory,
                                               title="Select a Video")
         if len(filename) > 0:
             self.url_input_entry.delete(0, 'end')
             self.url_input_entry.insert(0, filename)
-            media = vlc.Media(filename)
-            self.media_player.set_media(media)
-            self.media_player.play()
-            self.annotations = {}
-            self._load_json()
-            self._reload_annotations()
+            try:
+                media = vlc.Media(filename)
+                self.media_player.set_media(media)
+                self.media_player.play()
+                self.annotations = {}
+                self._load_json()
+            finally:
+                self._reload_annotations()
 
     def _play_button_callback(self):
         if self.is_playing:
@@ -221,7 +224,8 @@ class VideoTagger:
 
     def _get_json_filename(self):
         directory = self.url_input_entry.get().rsplit('/', 1)
-        filename = directory[1].split('.')
+        self.directory = directory[0]
+        filename = directory[1].rsplit('.', 1)
         return directory[0] + '/' + filename[0] + '.json'
 
     def _load_json(self):
