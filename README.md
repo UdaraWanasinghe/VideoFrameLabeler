@@ -1,3 +1,7 @@
-# Steps to follow
-
-* Use ffpyplayer to play video clips [https://pypi.org/project/ffpyplayer/](https://pypi.org/project/ffpyplayer/)
+# How to run
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
