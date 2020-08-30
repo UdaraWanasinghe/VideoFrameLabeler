@@ -7,7 +7,7 @@ import json
 from tkinter import messagebox
 
 
-class VideoTagger:
+class VideoFrameLabeler:
     def __init__(self):
         self._init_root_window()
         self._init_media_player()
@@ -34,7 +34,7 @@ class VideoTagger:
         self.root_window = Tk()
         self.root_window.title('Video Frame Labeler')
         self.root_window.wm_attributes("-topmost", 1)
-        self.root_window.geometry("400x400")
+        self.root_window.geometry("280x600")
 
     def _init_media_player(self):
         self.media_player = vlc.MediaPlayer()
@@ -88,10 +88,10 @@ class VideoTagger:
                     code = key_code - 18
                 elif 51 < key_code < 59:
                     code = key_code - 23
-                if -1 < code < len(self.drop_down_labels):
-                    self.drop_down_value.set(self.drop_down_labels[code])
+                if -1 < code < len(self.label_list):
+                    self.label_listbox.select_clear(0, 'end')
+                    self.label_listbox.select_set(code)
                     self._on_add_callback()
-            print(e)
 
         root.bind("<space>", play_callback)
         root.bind("<Right>", forward_callback)
@@ -127,11 +127,14 @@ class VideoTagger:
         return pane
 
     def _build_label_dropdown_menu(self, master):
-        self.drop_down_value = StringVar(self.root_window)
-        self.drop_down_labels = self._load_option_list()
-        self.drop_down_menu = OptionMenu(master, self.drop_down_value, *self.drop_down_labels)
-        self.drop_down_value.set(self.drop_down_labels[0])
-        return self.drop_down_menu
+        self.label_list = self._load_option_list()
+        self.label_listbox = Listbox(master, height=len(self.label_list))
+        i = 0
+        for l in self.label_list:
+            self.label_listbox.insert(i, l)
+            i = i + 1
+        self.label_listbox.select_set(0)
+        return self.label_listbox
 
     def _build_save_button(self, master):
         return Button(master, text='Save', command=self._on_save_callback)
@@ -143,8 +146,8 @@ class VideoTagger:
         return Button(master, text='Add', command=self._on_add_callback)
 
     def _build_label_list(self, master):
-        self.label_listbox = Listbox(master, height=10)
-        return self.label_listbox
+        self.video_label_listbox = Listbox(master, height=10)
+        return self.video_label_listbox
 
     @staticmethod
     def _load_option_list():
@@ -191,10 +194,10 @@ class VideoTagger:
         self.media_player.set_rate(self.media_player.get_rate() - 1)
 
     def _reload_annotations(self):
-        self.label_listbox.delete(0, 'end')
+        self.video_label_listbox.delete(0, 'end')
         for k, v in self.annotations.items():
-            self.label_listbox.insert(0, str(k) + ":    " + v)
-        self.label_listbox.select_set(0)
+            self.video_label_listbox.insert(0, str(k) + ":    " + v)
+        self.video_label_listbox.select_set(0)
 
     def _on_paused(self, _):
         self.is_playing = False
@@ -209,7 +212,7 @@ class VideoTagger:
 
     def _on_add_callback(self):
         key = self.media_player.get_time()
-        value = self.drop_down_value.get()
+        value = self.label_list[self.label_listbox.curselection()[0]]
         self.annotations[str(key)] = value
         self._reload_annotations()
 
@@ -220,7 +223,7 @@ class VideoTagger:
             messagebox.showinfo(title='Saved', message='Saved to ' + filename)
 
     def _on_delete_callback(self):
-        selected = self.label_listbox.get(self.label_listbox.curselection()).split(':')[0]
+        selected = self.video_label_listbox.get(self.video_label_listbox.curselection()).split(':')[0]
         del self.annotations[selected]
         self._reload_annotations()
 
@@ -236,4 +239,4 @@ class VideoTagger:
             self.annotations = json.load(f)
 
 
-videoTagger = VideoTagger()
+VideoFrameLabeler()
