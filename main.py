@@ -18,12 +18,14 @@ class VideoFrameLabeler:
         label_drop_down_menu = self._build_label_dropdown_menu(main_pane)
         save_button = self._build_save_button(main_pane)
         add_button = self._build_add_button(main_pane)
+        goto_button = self._build_goto_button(main_pane)
         delete_button = self._build_delete_button(main_pane)
         label_list = self._build_label_list(main_pane)
         main_pane.add(browse_media_pane)
         main_pane.add(media_control_pane)
         main_pane.add(label_drop_down_menu)
         main_pane.add(add_button)
+        main_pane.add(goto_button)
         main_pane.add(delete_button)
         main_pane.add(label_list)
         main_pane.add(save_button)
@@ -76,7 +78,10 @@ class VideoFrameLabeler:
         def save_callback(_):
             self._on_save_callback()
 
-        def print_e(e):
+        def goto_callback(_):
+            self._on_goto_callback()
+
+        def key_press_callback(e):
             key_code = e.keycode
             if 9 < key_code < 20 or 23 < key_code < 34 or 37 < key_code < 47 or 51 < key_code < 59:
                 code = -1
@@ -102,7 +107,8 @@ class VideoFrameLabeler:
         root.bind("<D>", delete_callback)
         root.bind("<A>", add_callback)
         root.bind("<S>", save_callback)
-        root.bind("<KeyPress>", print_e)
+        root.bind("<G>", goto_callback)
+        root.bind("<KeyPress>", key_press_callback)
 
     def _build_browse_media_pane(self, master):
         pane = PanedWindow(master, orient=HORIZONTAL)
@@ -144,6 +150,9 @@ class VideoFrameLabeler:
 
     def _build_add_button(self, master):
         return Button(master, text='Add', command=self._on_add_callback)
+
+    def _build_goto_button(self, master):
+        return Button(master, text='Goto', command=self._on_goto_callback)
 
     def _build_label_list(self, master):
         self.video_label_listbox = Listbox(master, height=10)
@@ -226,6 +235,10 @@ class VideoFrameLabeler:
         selected = self.video_label_listbox.get(self.video_label_listbox.curselection()).split(':')[0]
         del self.annotations[selected]
         self._reload_annotations()
+
+    def _on_goto_callback(self):
+        selected = self.video_label_listbox.get(self.video_label_listbox.curselection()).split(':')[0]
+        self.media_player.set_time(int(selected))
 
     def _get_json_filename(self):
         directory = self.url_input_entry.get().rsplit('/', 1)
