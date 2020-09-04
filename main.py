@@ -103,11 +103,11 @@ class VideoFrameLabeler:
         root.bind("<Left>", backward_callback)
         root.bind("<Up>", fast_forward_callback)
         root.bind("<Down>", fast_backward_callback)
-        root.bind("<B>", browse_callback)
-        root.bind("<D>", delete_callback)
-        root.bind("<A>", add_callback)
-        root.bind("<S>", save_callback)
-        root.bind("<G>", goto_callback)
+        root.bind("<Control_L><b>", browse_callback)
+        root.bind("<Control_L><d>", delete_callback)
+        root.bind("<Control_L><a>", add_callback)
+        root.bind("<Control_L><s>", save_callback)
+        root.bind("<Control_L><g>", goto_callback)
         root.bind("<KeyPress>", key_press_callback)
 
     def _build_browse_media_pane(self, master):
