@@ -55,7 +55,7 @@ class VideoFrameLabeler:
             self._play_button_callback()
 
         def forward_callback(_):
-            self._fast_forward_button_callback()
+            self._forward_button_callback()
 
         def fast_forward_callback(_):
             self._fast_forward_button_callback()
@@ -99,10 +99,10 @@ class VideoFrameLabeler:
                     self._on_add_callback()
 
         root.bind("<space>", play_callback)
-        root.bind("<Right>", forward_callback)
-        root.bind("<Left>", backward_callback)
-        root.bind("<Up>", fast_forward_callback)
-        root.bind("<Down>", fast_backward_callback)
+        root.bind("<Right>", fast_forward_callback)
+        root.bind("<Left>", fast_backward_callback)
+        root.bind("<Up>", forward_callback)
+        root.bind("<Down>", backward_callback)
         root.bind("<Control_L><b>", browse_callback)
         root.bind("<Control_L><d>", delete_callback)
         root.bind("<Control_L><a>", add_callback)
@@ -113,18 +113,24 @@ class VideoFrameLabeler:
     def _build_browse_media_pane(self, master):
         pane = PanedWindow(master, orient=HORIZONTAL)
         self.url_input_entry = Entry(pane)
-        self.browse_button = Button(pane, text="Browse", command=self._build_load_media_callback)
+        self.browse_button = Button(
+            pane, text="Browse", command=self._build_load_media_callback)
         pane.add(self.url_input_entry)
         pane.add(self.browse_button)
         return pane
 
     def _build_media_control_pane(self, master):
         pane = PanedWindow(master, orient=HORIZONTAL)
-        self.play_button = Button(pane, text="Play", command=self._play_button_callback)
-        forward_button = Button(pane, text=">", command=self._forward_button_callback)
-        fast_forward_button = Button(pane, text=">>", command=self._fast_forward_button_callback)
-        backward_button = Button(pane, text="<", command=self._backward_button_callback)
-        fast_backward_button = Button(pane, text="<<", command=self._fast_backward_button_callback)
+        self.play_button = Button(
+            pane, text="Play", command=self._play_button_callback)
+        forward_button = Button(
+            pane, text=">", command=self._forward_button_callback)
+        fast_forward_button = Button(
+            pane, text=">>", command=self._fast_forward_button_callback)
+        backward_button = Button(
+            pane, text="<", command=self._backward_button_callback)
+        fast_backward_button = Button(
+            pane, text="<<", command=self._fast_backward_button_callback)
         pane.add(fast_backward_button)
         pane.add(backward_button)
         pane.add(self.play_button)
@@ -136,8 +142,14 @@ class VideoFrameLabeler:
         self.label_list = self._load_option_list()
         self.label_listbox = Listbox(master, height=len(self.label_list))
         i = 0
+        arr = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's',
+               'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm']
         for l in self.label_list:
-            self.label_listbox.insert(i, l)
+            if i < 10:
+                c = str((i + 1) % 10)
+            else:
+                c = arr[i - 10]
+            self.label_listbox.insert(i, c + ": " + l)
             i = i + 1
         self.label_listbox.select_set(0)
         return self.label_listbox
@@ -232,12 +244,14 @@ class VideoFrameLabeler:
             messagebox.showinfo(title='Saved', message='Saved to ' + filename)
 
     def _on_delete_callback(self):
-        selected = self.video_label_listbox.get(self.video_label_listbox.curselection()).split(':')[0]
+        selected = self.video_label_listbox.get(
+            self.video_label_listbox.curselection()).split(':')[0]
         del self.annotations[selected]
         self._reload_annotations()
 
     def _on_goto_callback(self):
-        selected = self.video_label_listbox.get(self.video_label_listbox.curselection()).split(':')[0]
+        selected = self.video_label_listbox.get(
+            self.video_label_listbox.curselection()).split(':')[0]
         self.media_player.set_time(int(selected))
 
     def _get_json_filename(self):
