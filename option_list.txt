@@ -1,12 +1,12 @@
-Option 1
-Option 2
-Option 3
-Option 4
-Option 5
-Option 6
-Option 7
-Option 8
-Option 9
-Option 10
-Option 11
-Option 12
+collisions
+lane_change_violation
+large_vehicles
+pedestrian_crossing
+pedestrian_crossing_violation
+small_vehicles
+stationary_vehicles
+stop_line_violation
+traffic_lights_green
+traffic_lights_red
+vehicles_density_high
+vehicles_density_low
