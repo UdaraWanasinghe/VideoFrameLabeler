@@ -15,6 +15,7 @@ class VideoFrameLabeler:
         main_pane = PanedWindow(self.root_window, orient=VERTICAL)
         browse_media_pane = self._build_browse_media_pane(main_pane)
         media_control_pane = self._build_media_control_pane(main_pane)
+        time_text = self._build_play_percentage_text(main_pane)
         label_drop_down_menu = self._build_label_dropdown_menu(main_pane)
         save_button = self._build_save_button(main_pane)
         add_button = self._build_add_button(main_pane)
@@ -23,6 +24,7 @@ class VideoFrameLabeler:
         label_list = self._build_label_list(main_pane)
         main_pane.add(browse_media_pane)
         main_pane.add(media_control_pane)
+        main_pane.add(time_text)
         main_pane.add(label_drop_down_menu)
         main_pane.add(add_button)
         main_pane.add(goto_button)
@@ -36,7 +38,7 @@ class VideoFrameLabeler:
         self.root_window = Tk()
         self.root_window.title('Video Frame Labeler')
         self.root_window.wm_attributes("-topmost", 1)
-        self.root_window.geometry("280x600")
+        self.root_window.geometry("280x800")
 
     def _init_media_player(self):
         self.media_player = vlc.MediaPlayer()
@@ -138,18 +140,27 @@ class VideoFrameLabeler:
         pane.add(fast_forward_button)
         return pane
 
+    def _build_play_percentage_text(self, master):
+        self.time_percent = StringVar()
+        time_label = Label(master, textvariable=self.time_percent)
+        time_label.config(font=("Verdana", 16))
+        time_label.pack()
+        self.vlc_event_manager = self.media_player.event_manager()
+        self.vlc_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, self._on_media_time_changed)
+        return time_label
+
     def _build_label_dropdown_menu(self, master):
         self.label_list = self._load_option_list()
         self.label_listbox = Listbox(master, height=len(self.label_list))
         i = 0
         arr = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's',
                'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm']
-        for l in self.label_list:
+        for label in self.label_list:
             if i < 10:
                 c = str((i + 1) % 10)
             else:
                 c = arr[i - 10]
-            self.label_listbox.insert(i, c + ": " + l)
+            self.label_listbox.insert(i, c + ": " + label)
             i = i + 1
         self.label_listbox.select_set(0)
         return self.label_listbox
@@ -253,6 +264,11 @@ class VideoFrameLabeler:
         selected = self.video_label_listbox.get(
             self.video_label_listbox.curselection()).split(':')[0]
         self.media_player.set_time(int(selected))
+
+    def _on_media_time_changed(self, _):
+        percent = self.media_player.get_position() * 100
+        rounded = round(percent, 2)
+        self.time_percent.set(str(rounded) + '%')
 
     def _get_json_filename(self):
         directory = self.url_input_entry.get().rsplit('/', 1)
